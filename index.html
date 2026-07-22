@@ -168,6 +168,7 @@
     }
     @media (max-width: 760px) {
       .tray-grid { grid-template-columns: 1fr; }
+      .link-result { flex-direction: column; }
     }
     .slot-label-row {
       display: flex; align-items: baseline; justify-content: space-between;
@@ -273,6 +274,80 @@
     }
     .link-btn:hover { color: var(--brass-light); }
 
+    .tray-footer {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(171,138,76,0.25);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 3px;
+      border: 1px solid rgba(171,138,76,0.55);
+      background: rgba(171,138,76,0.12);
+      color: var(--brass-light);
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(10px, 1.2vw, 12px);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .btn-primary:hover:not(:disabled) { background: rgba(171,138,76,0.22); border-color: var(--brass); }
+    .btn-primary:disabled { opacity: 0.4; cursor: default; }
+    .btn-primary:focus-visible { outline: 2px solid var(--brass-light); outline-offset: 2px; }
+    .link-result {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .link-result input {
+      flex: 1;
+      min-width: 0;
+      background: rgba(16,14,10,0.4);
+      border: 1px solid rgba(171,138,76,0.4);
+      border-radius: 3px;
+      color: var(--brass-light);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      padding: 8px 10px;
+    }
+    .link-result button {
+      flex: 0 0 auto;
+      background: rgba(171,138,76,0.15);
+      border: 1px solid rgba(171,138,76,0.5);
+      border-radius: 3px;
+      color: var(--brass-light);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+    .link-result button:hover { background: rgba(171,138,76,0.28); }
+    .link-status {
+      margin-top: 8px;
+      min-height: 12px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      color: rgba(217,201,163,0.6);
+    }
+    .link-status.error { color: var(--danger); }
+    body.modo-visualizacao .tray { display: none; }
+    .album-erro {
+      margin-top: 24px;
+      max-width: 320px;
+      padding: 20px;
+      border: 1px solid rgba(171,138,76,0.4);
+      border-radius: 4px;
+      background: rgba(16,14,10,0.3);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--brass-light);
+      text-align: center;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .page { transition: none; }
       .stage { animation: none; }
@@ -328,9 +403,19 @@
         </div>
 
       </div>
+
+      <div class="tray-footer">
+        <button type="button" class="btn-primary" id="generateLinkBtn">gerar link do cliente</button>
+        <div class="link-result" id="linkResult" hidden>
+          <input type="text" id="linkOutput" readonly aria-label="Link do álbum para o cliente">
+          <button type="button" id="copyLinkBtn">copiar</button>
+        </div>
+        <p class="link-status" id="linkStatus" aria-live="polite"></p>
+      </div>
     </div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   // ============================================================
@@ -343,6 +428,14 @@
     paginas: [],        // [{ name, dataUrl }, ...]
     contracapa: null
   };
+
+  // ---------- Link do cliente (Supabase) ----------
+  var SUPABASE_URL = 'https://ledpqcynvqbdbccebhbo.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZHBxY3ludnFiZGJjY2ViaGJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODc3MjgsImV4cCI6MjA4NTk2MzcyOH0.s8GOzp4woujGuDc4vK9QXIf3cWLMENUnJfE4lt_YhLg';
+  var dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var albumToken = new URLSearchParams(location.search).get('a');
+  var modoVisualizacao = !!albumToken;
+  if (modoVisualizacao) { document.body.classList.add('modo-visualizacao'); }
 
   var totalLaminas = 0;
   var totalFaces = 0;
@@ -541,6 +634,47 @@
     currentFace = 0;
     updateView(true);
     updateTrayHint();
+  }
+
+  // ---------- Modo apresentação (link do cliente) ----------
+  function mostrarErroAlbum(mensagem) {
+    document.querySelector('.book-wrapper').style.display = 'none';
+    counterEl.textContent = '';
+    var erro = document.createElement('div');
+    erro.className = 'album-erro';
+    erro.innerHTML = '<p>' + escapeHtml(mensagem) + '</p>';
+    document.querySelector('.stage').appendChild(erro);
+  }
+
+  function carregarAlbumCliente(token) {
+    counterEl.textContent = 'Carregando álbum…';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    dbClient.from('album_apresentacoes').select('album_data').eq('token', token).single()
+      .then(function(res) {
+        if (res.error || !res.data) {
+          mostrarErroAlbum('Este link não é válido ou o álbum não está mais disponível.');
+          return;
+        }
+        var dados = res.data.album_data || {};
+        albumData.capa = dados.capa || null;
+        albumData.paginas = dados.paginas || [];
+        albumData.contracapa = dados.contracapa || null;
+        rebuildAlbum();
+        dbClient.from('album_apresentacoes').update({ ultimo_acesso: new Date().toISOString() }).eq('token', token).then(function(){});
+      })
+      .catch(function() {
+        mostrarErroAlbum('Não foi possível carregar o álbum agora. Tente novamente em instantes.');
+      });
+  }
+
+  function gerarTokenCurto() {
+    var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var rnd = new Uint32Array(10);
+    crypto.getRandomValues(rnd);
+    var out = '';
+    for (var i = 0; i < 10; i++) { out += chars[rnd[i] % chars.length]; }
+    return out;
   }
 
   // ----- navegação (mesmo código original) -----
@@ -829,11 +963,63 @@
     });
   });
 
+  // Gerar link do cliente
+  var generateLinkBtn = document.getElementById('generateLinkBtn');
+  var linkResult = document.getElementById('linkResult');
+  var linkOutput = document.getElementById('linkOutput');
+  var linkStatus = document.getElementById('linkStatus');
+  var copyLinkBtn = document.getElementById('copyLinkBtn');
+
+  generateLinkBtn.addEventListener('click', function() {
+    if (!albumData.capa && !albumData.paginas.length && !albumData.contracapa) {
+      linkStatus.className = 'link-status error';
+      linkStatus.textContent = 'Adicione ao menos uma foto antes de gerar o link.';
+      return;
+    }
+    generateLinkBtn.disabled = true;
+    linkStatus.className = 'link-status';
+    linkStatus.textContent = 'Gerando link…';
+    var token = gerarTokenCurto();
+    dbClient.from('album_apresentacoes').insert({
+      token: token,
+      album_data: { capa: albumData.capa, paginas: albumData.paginas, contracapa: albumData.contracapa }
+    }).then(function(res) {
+      generateLinkBtn.disabled = false;
+      if (res.error) {
+        linkStatus.className = 'link-status error';
+        linkStatus.textContent = 'Erro ao gerar link: ' + res.error.message;
+        return;
+      }
+      var url = location.origin + location.pathname + '?a=' + token;
+      linkOutput.value = url;
+      linkResult.hidden = false;
+      linkStatus.textContent = 'Link gerado — cada álbum novo gera um link novo, o anterior continua intacto.';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+          linkStatus.textContent = 'Link gerado e copiado para a área de transferência.';
+        }).catch(function() {});
+      }
+    });
+  });
+
+  copyLinkBtn.addEventListener('click', function() {
+    linkOutput.select();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(linkOutput.value).then(function() {
+        linkStatus.textContent = 'Link copiado.';
+      });
+    } else {
+      document.execCommand('copy');
+      linkStatus.textContent = 'Link copiado.';
+    }
+  });
+
   // ================== INICIALIZAÇÃO ==================
   recalcStructure();
   buildPages();
   updateView(true);
   updateTrayHint();
+  if (modoVisualizacao) { carregarAlbumCliente(albumToken); }
 
   bookEl.addEventListener('click', function(e) {
     var rect = bookEl.getBoundingClientRect();

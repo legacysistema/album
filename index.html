@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <title>Álbum Fotográfico 3D — Gabarito 340×250</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,30 +19,45 @@
       --danger: #8c4a3a;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { min-height:100vh; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
     body {
       background: radial-gradient(ellipse 150% 90% at 50% -15%, var(--stage-1) 0%, #1c1812 55%, var(--stage-2) 100%);
       font-family: 'Space Mono', monospace;
       color: var(--brass-light);
       -webkit-font-smoothing: antialiased;
-      display: flex; align-items: center; justify-content: center;
-      padding: 30px;
-      overflow-x: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .stage {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 20px;
-      user-select: none;
-      animation: fadeIn 1.1s ease;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      margin: 0;
+      gap: 6px;
     }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
-
-    /* Proporção exata 340:250 */
+    .album-container {
+      flex: 1 1 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 0;
+      padding: 4px;
+    }
     .book-wrapper {
       position: relative;
-      width: min(340px, 86vw, calc(70vh * 340 / 250));
-      aspect-ratio: 340 / 250;
-      perspective: 4200px;
+      /* perspective e dimensões definidas via JS */
       filter: drop-shadow(0 32px 40px rgba(0,0,0,0.55)) drop-shadow(0 6px 10px rgba(0,0,0,0.35));
     }
     .book-wrapper::after {
@@ -57,7 +72,12 @@
       transform-style: preserve-3d; -webkit-transform-style: preserve-3d;
     }
     .page {
-      position: absolute; inset: 0;
+      /* Ocupa a metade DIREITA do livro (da lombada até a borda direita).
+         Ao girar -180deg em torno da própria borda esquerda (= lombada,
+         transform-origin: left center), a página vira e passa a cobrir
+         a metade ESQUERDA — é assim que as duas páginas ficam visíveis
+         ao mesmo tempo, como um álbum aberto de verdade. */
+      position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
       transform-style: preserve-3d; -webkit-transform-style: preserve-3d;
       transform-origin: left center;
       transition: transform 0.95s cubic-bezier(.64,.06,.34,1);
@@ -73,7 +93,6 @@
       box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
     }
     .face.back { transform: rotateY(180deg); }
-    /* Remove qualquer decoração extra */
     .page-inner {
       width: 100%; height: 100%;
       background-size: cover !important;
@@ -84,7 +103,6 @@
       justify-content: flex-end;
       position: relative;
     }
-    /* Número da página (opcional, sem bordas) */
     .plate-num {
       position: absolute;
       bottom: 6px;
@@ -102,10 +120,9 @@
       background: transparent;
     }
 
-    /* Navegação */
+    /* Navegação – posicionamento via JS */
     .nav-btn {
       position: absolute; top: 50%; transform: translateY(-50%);
-      width: clamp(34px, 4.6vw, 46px); height: clamp(34px, 4.6vw, 46px);
       border-radius: 3px;
       border: 1px solid rgba(171,138,76,0.55);
       background: rgba(16,14,10,0.35);
@@ -115,35 +132,35 @@
       transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
       z-index: 50;
       padding: 0;
+      /* tamanho e posição definidos via JS */
     }
     .nav-btn:hover:not(:disabled) { background: rgba(171,138,76,0.22); border-color: var(--brass); }
     .nav-btn:disabled { opacity: 0.25; cursor: default; }
     .nav-btn:focus-visible { outline: 2px solid var(--brass-light); outline-offset: 2px; }
     .nav-btn .arrow { width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
-    .nav-prev { left: -58px; }
     .nav-prev .arrow { border-right: 8px solid currentColor; margin-right: -2px; }
-    .nav-next { right: -58px; }
     .nav-next .arrow { border-left: 8px solid currentColor; margin-left: -2px; }
-    @media (max-width: 760px) {
-      .nav-prev { left: 6px; }
-      .nav-next { right: 6px; }
-    }
 
     .counter {
       font-family: 'Space Mono', monospace;
       font-size: clamp(11px, 1.3vw, 14px);
       letter-spacing: 0.22em;
       color: var(--brass);
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 2px 0;
     }
 
-    /* Mesa de Montagem (sem alterações) */
+    /* Mesa de Montagem – sem limites de largura fixa */
     .tray {
       width: 100%;
-      max-width: min(340px, 86vw, calc(70vh * 340 / 250));
+      max-width: 100%;
       background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0));
       border: 1px solid rgba(171,138,76,0.35);
       border-radius: 4px;
-      padding: 18px 20px 20px;
+      padding: 12px 16px 16px;
+      flex: 0 0 auto;
+      margin: 0;
     }
     .tray-title {
       display: block;
@@ -152,18 +169,18 @@
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--brass);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .tray-hint {
       font-family: 'Space Mono', monospace;
       font-size: clamp(10px, 1.1vw, 12px);
       color: rgba(217,201,163,0.55);
-      margin: 0 0 14px;
+      margin: 0 0 10px;
     }
     .tray-grid {
       display: grid;
       grid-template-columns: 1fr 2fr 1fr;
-      gap: 18px;
+      gap: 14px;
       align-items: start;
     }
     @media (max-width: 760px) {
@@ -172,7 +189,7 @@
     }
     .slot-label-row {
       display: flex; align-items: baseline; justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .slot-name {
       font-family: 'Space Mono', monospace;
@@ -204,15 +221,15 @@
     }
     .dropzone {
       position: relative;
-      min-height: 92px;
+      min-height: 76px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 6px;
+      gap: 4px;
       overflow: hidden;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
     }
     .dropzone.filled { border-style: solid; }
-    .dz-icon { width: 22px; height: 22px; fill: none; stroke: rgba(217,201,163,0.6); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .dz-icon { width: 20px; height: 20px; fill: none; stroke: rgba(217,201,163,0.6); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
     .dz-text { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.03em; color: rgba(217,201,163,0.55); }
     .dz-thumb {
       position: absolute; inset: 0;
@@ -243,7 +260,7 @@
 
     .filmstrip {
       display: flex; flex-wrap: wrap; gap: 8px;
-      min-height: 92px;
+      min-height: 76px;
       padding: 8px;
       align-content: flex-start;
     }
@@ -254,7 +271,7 @@
       text-align: center;
     }
     .frame {
-      position: relative; width: 52px; height: 52px; border-radius: 2px; overflow: hidden;
+      position: relative; width: 48px; height: 48px; border-radius: 2px; overflow: hidden;
       background-size: cover; background-position: center;
       box-shadow: 0 0 0 1px rgba(171,138,76,0.4);
       flex: 0 0 auto;
@@ -266,7 +283,7 @@
     }
     .frame-remove { top: 2px; right: 2px; width: 15px; height: 15px; font-size: 10px; }
 
-    .slot-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+    .slot-actions { margin-top: 6px; display: flex; justify-content: flex-end; }
     .link-btn {
       background: none; border: none; padding: 0; cursor: pointer;
       font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.03em;
@@ -275,13 +292,13 @@
     .link-btn:hover { color: var(--brass-light); }
 
     .tray-footer {
-      margin-top: 18px;
-      padding-top: 16px;
+      margin-top: 14px;
+      padding-top: 12px;
       border-top: 1px solid rgba(171,138,76,0.25);
     }
     .btn-primary {
       width: 100%;
-      padding: 11px 14px;
+      padding: 10px 14px;
       border-radius: 3px;
       border: 1px solid rgba(171,138,76,0.55);
       background: rgba(171,138,76,0.12);
@@ -299,7 +316,7 @@
     .link-result {
       display: flex;
       gap: 8px;
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .link-result input {
       flex: 1;
@@ -325,7 +342,7 @@
     }
     .link-result button:hover { background: rgba(171,138,76,0.28); }
     .link-status {
-      margin-top: 8px;
+      margin-top: 6px;
       min-height: 12px;
       font-family: 'Space Mono', monospace;
       font-size: 10px;
@@ -333,7 +350,54 @@
       color: rgba(217,201,163,0.6);
     }
     .link-status.error { color: var(--danger); }
-    body.modo-visualizacao .tray { display: none; }
+
+    .modo-visualizacao .tray { display: none; }
+    .modo-visualizacao .counter { display: none; }
+
+    /* ==================================================================
+       VISUALIZADOR DO CLIENTE — sempre em tela cheia, sempre "deitado".
+       Nada aqui toca a animação 3D, o virar de páginas ou o JS de
+       navegação: apenas o CONTAINER é redimensionado/posicionado.
+       ================================================================== */
+    .modo-visualizacao html,
+    .modo-visualizacao body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #100e0a;
+    }
+    .modo-visualizacao .stage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      padding: 0;
+      margin: 0;
+      gap: 0;
+    }
+    .modo-visualizacao .album-container {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+    }
+    /* Celular na mão em pé (retrato): giramos a "mesa" inteira 90°
+       para que o álbum já apareça deitado, preenchendo a tela toda.
+       Quando o usuário gira o aparelho para paisagem, o navegador
+       já entrega width/height deitados e a rotação é removida. */
+    @media (orientation: portrait) {
+      .modo-visualizacao .stage {
+        width: 100vh;
+        height: 100vw;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(90deg);
+        transform-origin: center center;
+      }
+    }
+
     .album-erro {
       margin-top: 24px;
       max-width: 320px;
@@ -356,10 +420,12 @@
 </head>
 <body>
   <div class="stage">
-    <div class="book-wrapper" id="bookWrapper">
-      <div class="book" id="book"></div>
-      <button class="nav-btn nav-prev" id="prevBtn" aria-label="Página anterior"><span class="arrow"></span></button>
-      <button class="nav-btn nav-next" id="nextBtn" aria-label="Próxima página"><span class="arrow"></span></button>
+    <div class="album-container">
+      <div class="book-wrapper" id="bookWrapper">
+        <div class="book" id="book"></div>
+        <button class="nav-btn nav-prev" id="prevBtn" aria-label="Página anterior"><span class="arrow"></span></button>
+        <button class="nav-btn nav-next" id="nextBtn" aria-label="Próxima página"><span class="arrow"></span></button>
+      </div>
     </div>
     <div class="counter" id="counter" aria-live="polite">Capa</div>
 
@@ -419,17 +485,18 @@
 <script>
 (function(){
   // ============================================================
-  // Álbum adaptado ao gabarito 340×250 – sem bordas decorativas
-  // A contracapa sempre fica no VERSO (back) da última lâmina.
+  // Álbum adaptado ao gabarito 340×250 – redimensionamento puro
+  // Nenhum scale, zoom ou transformação de escala é usado.
+  // Tamanhos são definidos diretamente via JavaScript.
   // ============================================================
 
   var albumData = {
-    capa: null,        // { name, dataUrl } | null
-    paginas: [],        // [{ name, dataUrl }, ...]
+    capa: null,
+    paginas: [],
     contracapa: null
   };
 
-  // ---------- Link do cliente (Supabase) ----------
+  // ---------- Supabase ----------
   var SUPABASE_URL = 'https://ledpqcynvqbdbccebhbo.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZHBxY3ludnFiZGJjY2ViaGJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODc3MjgsImV4cCI6MjA4NTk2MzcyOH0.s8GOzp4woujGuDc4vK9QXIf3cWLMENUnJfE4lt_YhLg';
   var dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -439,9 +506,10 @@
 
   var totalLaminas = 0;
   var totalFaces = 0;
-  var contracapaFaceIndex = 0; // índice da face onde a contracapa está (sempre ímpar = back)
+  var contracapaFaceIndex = 0;
 
   var bookEl = document.getElementById('book');
+  var bookWrapper = document.getElementById('bookWrapper');
   var prevBtn = document.getElementById('prevBtn');
   var nextBtn = document.getElementById('nextBtn');
   var counterEl = document.getElementById('counter');
@@ -450,30 +518,119 @@
   var isAnimating = false;
   var pages = [];
 
+  // ================== FUNÇÃO DE REDIMENSIONAMENTO ==================
+  function updateAlbumScale() {
+    if (!bookWrapper) return;
+
+    var tray = document.querySelector('.tray');
+    var isTrayVisible = tray && tray.style.display !== 'none' && !document.body.classList.contains('modo-visualizacao');
+
+    // No modo cliente (visualizador), a .stage é forçada a ficar "deitada"
+    // via CSS (rotate 90° quando o aparelho está em pé). Isso troca, na
+    // prática, o espaço disponível: a largura utilizável passa a ser a
+    // altura da janela, e a altura utilizável passa a ser a largura da
+    // janela. Detectamos isso perguntando ao navegador o estado real do
+    // media query — nada aqui depende de JS de navegação/animação.
+    var isForcedLandscape = false;
+    if (modoVisualizacao) {
+      isForcedLandscape = window.matchMedia('(orientation: portrait)').matches;
+    }
+
+    var availWidth = isForcedLandscape ? window.innerHeight : window.innerWidth;
+    var availHeight = isForcedLandscape ? window.innerWidth : window.innerHeight;
+
+    // Subtrai a altura do tray se visível (só existe fora do modo cliente)
+    if (isTrayVisible && tray) {
+      var trayHeight = tray.offsetHeight || 0;
+      // considerando gap do stage (6px) + padding do tray (12+16) + margens
+      var extraGap = 6 + 28; 
+      availHeight = availHeight - trayHeight - extraGap;
+    }
+
+    // Margem de segurança: no visualizador do cliente é mínima (a tela
+    // toda pertence ao álbum); na mesa de montagem mantém a folga original.
+    var margin = modoVisualizacao ? 0.995 : 0.97;
+    availWidth *= margin;
+    availHeight *= margin;
+
+    // 340x250 é o gabarito de UMA página. O livro agora exibe duas
+    // páginas lado a lado (spread aberto), então a proporção do wrapper
+    // passa a ser o dobro da largura de uma página.
+    var pageRatio = 340 / 250;
+    var ratio = pageRatio * 2;
+    var largura, altura;
+
+    if (availWidth / availHeight > ratio) {
+      altura = availHeight;
+      largura = altura * ratio;
+    } else {
+      largura = availWidth;
+      altura = largura / ratio;
+    }
+
+    largura = Math.floor(largura);
+    altura = Math.floor(altura);
+
+    // Aplica dimensões ao wrapper (o spread inteiro)
+    bookWrapper.style.width = largura + 'px';
+    bookWrapper.style.height = altura + 'px';
+
+    // Largura de UMA página (metade do spread) — usada para calibrar
+    // perspectiva e botões na mesma proporção visual de antes.
+    var pageWidth = largura / 2;
+
+    // Ajusta a perspectiva proporcionalmente à largura de uma página (fator 6)
+    var perspective = pageWidth * 6;
+    bookWrapper.style.perspective = perspective + 'px';
+
+    // Ajusta a posição e tamanho dos botões de navegação
+    var btnSize = Math.min(pageWidth * 0.12, 46);
+    btnSize = Math.max(btnSize, 34);
+    var btnOffset = pageWidth * 0.12;
+    btnOffset = Math.max(btnOffset, 20);
+
+    prevBtn.style.width = btnSize + 'px';
+    prevBtn.style.height = btnSize + 'px';
+    prevBtn.style.left = (-btnOffset) + 'px';
+
+    nextBtn.style.width = btnSize + 'px';
+    nextBtn.style.height = btnSize + 'px';
+    nextBtn.style.right = (-btnOffset) + 'px';
+
+    // Ajusta tamanho das setas
+    var arrowSize = btnSize * 0.25;
+    var arrows = document.querySelectorAll('.nav-btn .arrow');
+    arrows.forEach(function(arrow) {
+      arrow.style.borderTopWidth = arrowSize + 'px';
+      arrow.style.borderBottomWidth = arrowSize + 'px';
+      if (arrow.parentElement.classList.contains('nav-prev')) {
+        arrow.style.borderRightWidth = (arrowSize * 1.2) + 'px';
+        arrow.style.marginRight = '-2px';
+      } else {
+        arrow.style.borderLeftWidth = (arrowSize * 1.2) + 'px';
+        arrow.style.marginLeft = '-2px';
+      }
+    });
+  }
+
+  // ================== FIM DA FUNÇÃO ==================
+
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
-  // ---------- Estrutura dinâmica ----------
-  // A contracapa deve ser sempre a face BACK (ímpar) da última lâmina.
+  // ---------- Estrutura ----------
   function recalcStructure() {
     var n = albumData.paginas.length;
-    // Índice onde a contracapa ficaria se fosse colocada sequencialmente
-    var idx = 2 + n; // capa (0) + blank (1) + N páginas
-
-    // Se idx for PAR, a contracapa cairia no FRONT de uma nova lâmina.
-    // Queremos que ela fique no BACK, então adicionamos uma face em branco
-    // no FRONT e a contracapa vai para idx+1 (ímpar).
+    var idx = 2 + n;
     if (idx % 2 === 0) {
-      // Adiciona uma face em branco antes da contracapa
-      contracapaFaceIndex = idx + 1; // ímpar
-      totalFaces = contracapaFaceIndex + 1; // inclui o blank e a contracapa
+      contracapaFaceIndex = idx + 1;
+      totalFaces = contracapaFaceIndex + 1;
     } else {
-      // Já está no BACK
       contracapaFaceIndex = idx;
-      totalFaces = contracapaFaceIndex + 1; // inclui a contracapa
+      totalFaces = contracapaFaceIndex + 1;
     }
     totalLaminas = totalFaces / 2;
   }
@@ -481,65 +638,43 @@
   function getFaceLabel(faceIndex) {
     if (faceIndex === 0) return { label: 'Capa', num: null };
     if (faceIndex === 1) return { label: 'Blank', num: null };
-    // Se for o front que precede a contracapa, tratamos como blank
     if (faceIndex === contracapaFaceIndex - 1 && contracapaFaceIndex % 2 === 1) {
       return { label: 'Blank', num: null };
     }
     if (faceIndex === contracapaFaceIndex) return { label: 'Contracapa', num: null };
     if (faceIndex > contracapaFaceIndex) return { label: 'Blank', num: null };
-    // Páginas internas
-    var pageNum = faceIndex - 1; // face 2 -> 1, face 3 -> 2, ...
+    var pageNum = faceIndex - 1;
     return { label: String(pageNum).padStart(2, '0'), num: pageNum };
   }
 
-  // Cria o HTML de uma face – imagem de fundo, sem bordas
   function createFaceHtml(faceIndex) {
     var info = getFaceLabel(faceIndex);
     var foto = null;
-    var bgColor = '#f0ede8'; // fundo neutro para faces sem imagem
+    var bgColor = '#f0ede8';
 
-    // Capa (front)
     if (faceIndex === 0) {
       foto = albumData.capa;
     }
-    // Contracapa (sempre no back)
     else if (faceIndex === contracapaFaceIndex) {
       foto = albumData.contracapa;
     }
-    // Páginas internas (entre o blank e a contracapa)
     else if (faceIndex > 1 && faceIndex < contracapaFaceIndex) {
-      // Ajuste: se a contracapa está no back, o front que a precede é blank,
-      // e as páginas estão antes desse blank.
-      // Mas se a contracapa está no back, o índice das páginas internas é:
-      // face 2 -> página 1, face 3 -> página 2, ...
-      // Precisamos subtrair 2 para obter o índice no array de paginas.
       var pageIdx = faceIndex - 2;
-      // Verifica se está dentro do intervalo (pode ser o blank que antecede a contracapa)
       if (pageIdx >= 0 && pageIdx < albumData.paginas.length) {
         foto = albumData.paginas[pageIdx];
       }
     }
 
-    // Se há foto, usa como background; senão, fundo neutro
     var style = 'background-color:' + bgColor + ';';
     if (foto) {
       style += 'background-image:url(' + foto.dataUrl + ');background-size:cover;background-position:center;';
     }
 
-    // Número da página (exibe apenas para páginas internas com foto ou blank)
     var numHtml = '';
     if (faceIndex > 1 && faceIndex < contracapaFaceIndex) {
       var numClass = 'plate-num' + (foto ? '' : ' blank');
       numHtml = '<span class="' + numClass + '">Nº ' + info.label + '</span>';
-    } else if (faceIndex === 0 && foto) {
-      // capa sem número
-    } else if (faceIndex === contracapaFaceIndex && foto) {
-      // contracapa (verso) sem número
     }
-
-    // (Opcional) GUTTER (21) – descomente se quiser aplicar recuo na dobra
-    // var gutterStyle = 'padding-left: ' + (21/340*100) + '%;';
-    // style += gutterStyle;
 
     return '<div class="page-inner" style="' + style + '">' + numHtml + '</div>';
   }
@@ -619,7 +754,6 @@
 
   function updateButtons() {
     prevBtn.disabled = currentFace === 0;
-    // O álbum termina na contracapa (que é o verso da última lâmina)
     nextBtn.disabled = currentFace === contracapaFaceIndex;
   }
 
@@ -634,9 +768,10 @@
     currentFace = 0;
     updateView(true);
     updateTrayHint();
+    updateAlbumScale();
   }
 
-  // ---------- Modo apresentação (link do cliente) ----------
+  // ---------- Modo apresentação ----------
   function mostrarErroAlbum(mensagem) {
     document.querySelector('.book-wrapper').style.display = 'none';
     counterEl.textContent = '';
@@ -661,6 +796,7 @@
         albumData.paginas = dados.paginas || [];
         albumData.contracapa = dados.contracapa || null;
         rebuildAlbum();
+        updateAlbumScale();
         dbClient.from('album_apresentacoes').update({ ultimo_acesso: new Date().toISOString() }).eq('token', token).then(function(){});
       })
       .catch(function() {
@@ -677,15 +813,12 @@
     return out;
   }
 
-  // ----- navegação (mesmo código original) -----
+  // ----- navegação -----
   function next() {
     if (isAnimating) return;
     var fromFace = currentFace;
     var toFace = fromFace + 1;
-    // Pula a face 1 (blank) – da capa vai direto para a página 1
     if (toFace === 1) toFace = 2;
-    // Se a contracapa estiver no back e houver um blank antes dela,
-    // também pulamos esse blank (face = contracapaFaceIndex - 1)
     if (toFace === contracapaFaceIndex - 1 && contracapaFaceIndex % 2 === 1) {
       toFace = contracapaFaceIndex;
     }
@@ -695,7 +828,6 @@
     var fromLado = fromFace % 2;
 
     if (fromLado === 0) {
-      // Estamos na frente de uma lâmina – vamos virá-la
       isAnimating = true;
       currentFace = toFace;
       updateCounter();
@@ -712,7 +844,6 @@
       };
       page.addEventListener('transitionend', listener);
     } else {
-      // Estamos no verso – avançamos para a próxima lâmina (frente)
       currentFace = toFace;
       updateView(false);
       updateCounter();
@@ -724,24 +855,13 @@
     if (isAnimating) return;
     var fromFace = currentFace;
     var toFace = fromFace - 1;
-    // Pula a face 1 (blank) – da página 1 volta direto para a capa
     if (toFace === 1) toFace = 0;
-    // Se a contracapa estiver no back e houver um blank antes dela,
-    // ao voltar da contracapa vamos para o blank (opcional), mas queremos
-    // pular para a página anterior? Na verdade, se estamos na contracapa (verso),
-    // o front da mesma lâmina é blank, mas queremos que o usuário vá para a
-    // última página (que está no front da lâmina anterior). Porém, como a navegação
-    // é sequencial, se a contracapa for o back, o front da mesma lâmina é blank,
-    // e o usuário pode ver esse blank. Deixamos a navegação natural: ele vai para
-    // o blank, e de lá pode voltar para a página anterior. Isso é aceitável.
-    // Então não pulamos o blank aqui.
     if (toFace < 0) return;
 
     var fromLamina = Math.floor(fromFace / 2);
     var fromLado = fromFace % 2;
 
     if (fromLado === 1) {
-      // Estamos no verso – vamos virar a lâmina de volta para a frente
       isAnimating = true;
       currentFace = toFace;
       updateCounter();
@@ -758,7 +878,6 @@
       };
       page.addEventListener('transitionend', listener);
     } else {
-      // Estamos na frente – voltamos para a lâmina anterior (verso)
       currentFace = toFace;
       updateView(false);
       updateCounter();
@@ -766,7 +885,7 @@
     }
   }
 
-  // ================== UPLOAD (mesmo código, com funções de leitura de imagem) ==================
+  // ================== UPLOAD ==================
   function readImageFile(file) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
@@ -1021,6 +1140,17 @@
   updateTrayHint();
   if (modoVisualizacao) { carregarAlbumCliente(albumToken); }
 
+  // Eventos de redimensionamento
+  window.addEventListener('load', function() {
+    updateAlbumScale();
+  });
+  window.addEventListener('resize', updateAlbumScale);
+  window.addEventListener('orientationchange', function() {
+    setTimeout(updateAlbumScale, 150);
+  });
+  document.addEventListener('fullscreenchange', updateAlbumScale);
+
+  // Navegação
   bookEl.addEventListener('click', function(e) {
     var rect = bookEl.getBoundingClientRect();
     var x = e.clientX - rect.left;
@@ -1042,6 +1172,9 @@
       if (dx < 0) next(); else prev();
     }
   }, { passive: true });
+
+  // Força um recalque inicial
+  setTimeout(updateAlbumScale, 50);
 })();
 </script>
 </body>
